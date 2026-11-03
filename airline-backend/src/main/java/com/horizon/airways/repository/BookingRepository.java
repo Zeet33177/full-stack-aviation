@@ -34,4 +34,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     boolean existsByPassengerIdAndFlightId(Long passengerId, Long flightId);
+
+    boolean existsByPassengerIdAndFlightIdAndStatusNot(Long passengerId, Long flightId, BookingStatus status);
+
+    List<Booking> findByFlightIdAndStatusNot(Long flightId, BookingStatus status);
 }

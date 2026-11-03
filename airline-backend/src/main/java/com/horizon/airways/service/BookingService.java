@@ -12,6 +12,7 @@ import com.horizon.airways.repository.BookingRepository;
 import com.horizon.airways.repository.FlightRepository;
 import com.horizon.airways.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final FlightRepository flightRepository;
     private final UserRepository userRepository;
+    private final SeatMapService seatMapService;
 
     @Transactional
     public BookingResponse createBooking(BookingRequest request, Long userId) {
@@ -41,13 +43,28 @@ public class BookingService {
             throw new BookingException("No seats available on flight " + flight.getFlightNumber());
         }
 
-        if (bookingRepository.existsByPassengerIdAndFlightId(userId, flight.getId())) {
+        if (bookingRepository.existsByPassengerIdAndFlightIdAndStatusNot(userId, flight.getId(), BookingStatus.CANCELLED)) {
             throw new BookingException("You already have a booking on this flight");
         }
 
-        int seatIndex = flight.getTotalSeats() - flight.getAvailableSeats() + 1;
-        String seatNumber = assignSeat(seatIndex, request.getSeatClass());
-        BigDecimal totalAmount = calculatePrice(flight.getPrice(), request.getSeatClass());
+        String seatNumber;
+        BigDecimal seatAddOn;
+        if (request.getSeatNumber() != null && !request.getSeatNumber().isBlank()) {
+            seatNumber = request.getSeatNumber();
+            if (!seatMapService.isValidSeat(seatNumber)) {
+                throw new BookingException("Seat " + seatNumber + " does not exist on this aircraft");
+            }
+            if (!seatMapService.isSeatAvailable(flight.getId(), seatNumber)) {
+                throw new BookingException("Seat " + seatNumber + " is no longer available");
+            }
+            seatAddOn = seatMapService.addOnForSeat(seatNumber);
+        } else {
+            int seatIndex = flight.getTotalSeats() - flight.getAvailableSeats() + 1;
+            seatNumber = assignSeat(seatIndex, request.getSeatClass());
+            seatAddOn = BigDecimal.ZERO;
+        }
+
+        BigDecimal totalAmount = calculatePrice(flight.getPrice(), request.getSeatClass()).add(seatAddOn);
 
         Booking booking = Booking.builder()
                 .bookingReference(generateBookingReference())
@@ -58,7 +75,13 @@ public class BookingService {
                 .totalAmount(totalAmount)
                 .build();
 
-        booking = bookingRepository.save(booking);
+        try {
+            booking = bookingRepository.saveAndFlush(booking);
+        } catch (DataIntegrityViolationException e) {
+            // Lost a race for this seat — the (flight_id, seat_number) unique
+            // constraint rejected the second concurrent booking.
+            throw new BookingException("Seat " + seatNumber + " is no longer available");
+        }
 
         // Reserve the seat — decrement count
         flight.setAvailableSeats(flight.getAvailableSeats() - 1);
@@ -86,6 +109,9 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancellationDate(LocalDateTime.now());
+        // Release the seat so it can be rebooked (and won't collide with the
+        // (flight_id, seat_number) unique constraint on a later booking).
+        booking.setSeatNumber(null);
         booking = bookingRepository.save(booking);
 
         // Release the seat

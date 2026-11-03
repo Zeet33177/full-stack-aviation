@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { adminEmployeeAPI, adminAircraftAPI, adminFlightAPI, attendanceAPI, dutyReportAPI } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { FaPlane, FaKey, FaUserTie, FaUsers, FaCalendarAlt, FaClipboardList, FaEdit } from 'react-icons/fa';
 
 function StatCard({ to, icon, title, stat, sub, color, gradient }) {
   return (
@@ -15,7 +16,7 @@ function StatCard({ to, icon, title, stat, sub, color, gradient }) {
         fontSize: '1.4rem', flexShrink: 0,
         boxShadow: `0 4px 12px ${color}40`
       }}>
-        {icon}
+        {(() => { const Icon = icon; return <Icon />; })()}
       </div>
       <div className="module-card-body">
         <div className="module-card-title">{title}</div>
@@ -66,7 +67,7 @@ export default function AdminDashboardPage() {
 
       {/* Welcome Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f2557 0%, #1d4ed8 60%, #0ea5e9 100%)',
+        background: 'linear-gradient(135deg, #134e4a 0%, #0d9488 60%, #2dd4bf 100%)',
         borderRadius: 'var(--radius)',
         padding: '28px 32px',
         marginBottom: '32px',
@@ -82,7 +83,7 @@ export default function AdminDashboardPage() {
         <div style={{
           position: 'absolute', right: '-40px', bottom: '-40px',
           fontSize: '12rem', opacity: 0.05, pointerEvents: 'none'
-        }}>✈</div>
+        }}><FaPlane /></div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.82rem', fontWeight: '700', color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
@@ -97,7 +98,7 @@ export default function AdminDashboardPage() {
             color: 'rgba(255,255,255,.9)', fontSize: '0.72rem', fontWeight: '700',
             padding: '3px 12px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.06em'
           }}>
-            {isAdmin ? '🔑 Administrator' : '👔 Staff Member'}
+            {isAdmin ? <><FaKey style={{ verticalAlign: 'middle' }} /> Administrator</> : <><FaUserTie style={{ verticalAlign: 'middle' }} /> Staff Member</>}
           </span>
         </div>
 
@@ -117,29 +118,29 @@ export default function AdminDashboardPage() {
         {isAdmin && (
           <>
             <StatCard
-              to="/admin/employees" icon="👥" title="Total Employees"
+              to="/admin/employees" icon={FaUsers} title="Total Employees"
               stat={stats?.employees} sub="Active staff members"
               color="#2563eb" gradient="linear-gradient(135deg,#2563eb,#1e3a8a)"
             />
             <StatCard
-              to="/admin/aircraft" icon="✈" title="Aircraft Fleet"
+              to="/admin/aircraft" icon={FaPlane} title="Aircraft Fleet"
               stat={stats?.aircraft} sub="Registered aircraft"
               color="#7c3aed" gradient="linear-gradient(135deg,#7c3aed,#4f46e5)"
             />
             <StatCard
-              to="/admin/scheduling" icon="🗓" title="Scheduled Flights"
+              to="/admin/scheduling" icon={FaCalendarAlt} title="Scheduled Flights"
               stat={stats?.flights} sub="Active flight routes"
               color="#0891b2" gradient="linear-gradient(135deg,#0891b2,#0284c7)"
             />
           </>
         )}
         <StatCard
-          to="/admin/attendance" icon="📋" title="Attendance Records"
+          to="/admin/attendance" icon={FaClipboardList} title="Attendance Records"
           stat={stats?.attendance} sub="Total records logged"
           color="#16a34a" gradient="linear-gradient(135deg,#16a34a,#059669)"
         />
         <StatCard
-          to="/admin/duty-reports" icon="📝" title="Duty Reports"
+          to="/admin/duty-reports" icon={FaEdit} title="Duty Reports"
           stat={stats?.dutyReports} sub="Reports submitted"
           color="#d97706" gradient="linear-gradient(135deg,#d97706,#b45309)"
         />

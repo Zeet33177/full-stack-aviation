@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { reportAPI } from '../api/axios';
+import { FaPlane, FaRupeeSign, FaClipboardList, FaTimesCircle, FaPlaneDeparture, FaMoneyBillWave, FaUsers, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 
 const TABS = [
-  { id: 'flights',       label: '✈ Flights' },
-  { id: 'revenue',       label: '₹ Revenue' },
-  { id: 'reservations',  label: '📋 Reservations' },
-  { id: 'cancellations', label: '❌ Cancellations' },
-  { id: 'aircraft',      label: '🛩 Aircraft' },
-  { id: 'salary',        label: '💰 Salary' },
-  { id: 'employees',     label: '👥 Employees' },
+  { id: 'flights',       icon: FaPlane,          label: 'Flights' },
+  { id: 'revenue',       icon: FaRupeeSign,      label: 'Revenue' },
+  { id: 'reservations',  icon: FaClipboardList,  label: 'Reservations' },
+  { id: 'cancellations', icon: FaTimesCircle,    label: 'Cancellations' },
+  { id: 'aircraft',      icon: FaPlaneDeparture, label: 'Aircraft' },
+  { id: 'salary',        icon: FaMoneyBillWave,  label: 'Salary' },
+  { id: 'employees',     icon: FaUsers,          label: 'Employees' },
 ];
 
 function StatCard({ label, value, sub, color }) {
@@ -68,7 +69,7 @@ export default function ReportsPage() {
             className={`report-tab ${activeTab === t.id ? 'active' : ''}`}
             onClick={() => setActiveTab(t.id)}
           >
-            {t.label}
+            {(() => { const Icon = t.icon; return <Icon style={{ verticalAlign: 'middle', marginRight: '6px' }} />; })()}{t.label}
           </button>
         ))}
       </div>
@@ -80,7 +81,7 @@ export default function ReportsPage() {
           <div>
             <h2 className="report-section-title">Flight Report</h2>
             <div className="report-stats-grid">
-              <StatCard label="Total Flights"     value={fmt(report.totalFlights)}     color="#2563eb" />
+              <StatCard label="Total Flights"     value={fmt(report.totalFlights)}     color="var(--primary)" />
               <StatCard label="Scheduled"         value={fmt(report.scheduledFlights)} color="#16a34a" />
               <StatCard label="Delayed"           value={fmt(report.delayedFlights)}   color="#d97706" />
               <StatCard label="Cancelled"         value={fmt(report.cancelledFlights)} color="#dc2626" />
@@ -119,7 +120,7 @@ export default function ReportsPage() {
             <h2 className="report-section-title">Revenue Report</h2>
             <div className="report-stats-grid">
               <StatCard label="Total Revenue"      value={fmtCurr(report.totalRevenue)}      color="#16a34a" sub="All time" />
-              <StatCard label="Avg Ticket Price"   value={fmtCurr(report.averageTicketPrice)} color="#2563eb" sub="Per confirmed booking" />
+              <StatCard label="Avg Ticket Price"   value={fmtCurr(report.averageTicketPrice)} color="var(--primary)" sub="Per confirmed booking" />
               <StatCard label="Confirmed Bookings" value={fmt(report.confirmedBookings)}      color="#7c3aed" sub="Revenue-generating" />
               <StatCard label="Total Bookings"     value={fmt(report.totalBookings)}          color="#d97706" />
             </div>
@@ -147,7 +148,7 @@ export default function ReportsPage() {
           <div>
             <h2 className="report-section-title">Reservations Report</h2>
             <div className="report-stats-grid">
-              <StatCard label="Total Bookings"   value={fmt(report.totalBookings)}     color="#2563eb" />
+              <StatCard label="Total Bookings"   value={fmt(report.totalBookings)}     color="var(--primary)" />
               <StatCard label="Confirmed"        value={fmt(report.confirmedBookings)} color="#16a34a" />
               <StatCard label="Pending"          value={fmt(report.pendingBookings)}   color="#d97706" />
               <StatCard label="Completed"        value={fmt(report.completedBookings)} color="#7c3aed" />
@@ -170,7 +171,7 @@ export default function ReportsPage() {
             <div className="report-stats-grid">
               <StatCard label="Cancelled Bookings" value={fmt(report.cancelledBookings)}         color="#dc2626" />
               <StatCard label="Cancellation Rate"  value={`${report.cancellationRate}%`}         color="#d97706" sub="Of total bookings" />
-              <StatCard label="Total Bookings"     value={fmt(report.totalBookings)}              color="#2563eb" />
+              <StatCard label="Total Bookings"     value={fmt(report.totalBookings)}              color="var(--primary)" />
               <StatCard label="Active Bookings"    value={fmt(report.confirmedBookings + report.pendingBookings)} color="#16a34a" sub="Confirmed + Pending" />
             </div>
 
@@ -183,8 +184,8 @@ export default function ReportsPage() {
 
             <div className="report-note">
               {report.cancellationRate > 20
-                ? '⚠ Cancellation rate is above 20%. Consider reviewing booking policies.'
-                : '✅ Cancellation rate is within acceptable range.'}
+                ? <><FaExclamationTriangle style={{ verticalAlign: 'middle' }} /> Cancellation rate is above 20%. Consider reviewing booking policies.</>
+                : <><FaCheckCircle style={{ verticalAlign: 'middle' }} /> Cancellation rate is within acceptable range.</>}
             </div>
           </div>
         )}
@@ -194,7 +195,7 @@ export default function ReportsPage() {
           <div>
             <h2 className="report-section-title">Aircraft Report</h2>
             <div className="report-stats-grid">
-              <StatCard label="Total Fleet"    value={fmt(report.totalAircraft)}  color="#2563eb" />
+              <StatCard label="Total Fleet"    value={fmt(report.totalAircraft)}  color="var(--primary)" />
               <StatCard label="Active"         value={fmt(report.activeAircraft)} color="#16a34a" />
               <StatCard label="Under Maintenance / Retired"
                 value={fmt(report.totalAircraft - report.activeAircraft)}         color="#d97706" />
@@ -241,7 +242,7 @@ export default function ReportsPage() {
             <h2 className="report-section-title">Salary Report</h2>
             <div className="report-stats-grid">
               <StatCard label="Total Payroll"    value={fmtCurr(report.totalSalaryPayroll)} color="#16a34a" sub="Monthly" />
-              <StatCard label="Average Salary"   value={fmtCurr(report.averageSalary)}      color="#2563eb" />
+              <StatCard label="Average Salary"   value={fmtCurr(report.averageSalary)}      color="var(--primary)" />
               <StatCard label="Total Employees"  value={fmt(report.totalEmployees)}          color="#7c3aed" />
               <StatCard label="Active Staff"     value={fmt(report.activeEmployees)}         color="#d97706" />
             </div>
@@ -270,7 +271,7 @@ export default function ReportsPage() {
                   label={role.replace(/_/g, ' ')}
                   value={count}
                   max={report.totalEmployees}
-                  color="#2563eb"
+                  color="var(--primary)"
                 />
               ))}
             </div>
@@ -282,7 +283,7 @@ export default function ReportsPage() {
           <div>
             <h2 className="report-section-title">Employee Report</h2>
             <div className="report-stats-grid">
-              <StatCard label="Total Employees" value={fmt(report.totalEmployees)}  color="#2563eb" />
+              <StatCard label="Total Employees" value={fmt(report.totalEmployees)}  color="var(--primary)" />
               <StatCard label="Active"          value={fmt(report.activeEmployees)} color="#16a34a" />
               <StatCard label="On Leave / Other"
                 value={fmt(report.totalEmployees - report.activeEmployees)}          color="#d97706" />

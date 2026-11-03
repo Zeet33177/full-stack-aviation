@@ -30,9 +30,9 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, "Horizon Airways");
+            helper.setFrom(fromEmail, "Full Stack Aviation");
             helper.setTo(toEmail);
-            helper.setSubject("Reset Your Horizon Airways Password");
+            helper.setSubject("Reset Your Full Stack Aviation Password");
             helper.setText(buildResetEmailHtml(firstName, resetToken), true);
 
             mailSender.send(message);
@@ -58,10 +58,10 @@ public class EmailService {
 
                     <!-- Header -->
                     <tr>
-                      <td style="background:linear-gradient(135deg,#0f2557 0%%,#1d4ed8 60%%,#0ea5e9 100%%);padding:36px 40px;text-align:center;">
+                      <td style="background:linear-gradient(135deg,#134e4a 0%%,#0d9488 60%%,#2dd4bf 100%%);padding:36px 40px;text-align:center;">
                         <div style="font-size:2rem;margin-bottom:8px;">✈</div>
                         <h1 style="margin:0;color:#fff;font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;">
-                          Horizon Airways
+                          Full Stack Aviation
                         </h1>
                         <p style="margin:6px 0 0;color:rgba(255,255,255,.65);font-size:0.85rem;">
                           Password Reset Request
@@ -76,7 +76,7 @@ public class EmailService {
                           Hi <strong>%s</strong>,
                         </p>
                         <p style="margin:0 0 24px;font-size:0.95rem;color:#475569;line-height:1.6;">
-                          We received a request to reset the password for your Horizon Airways account.
+                          We received a request to reset the password for your Full Stack Aviation account.
                           Click the button below to choose a new password. This link is valid for
                           <strong>30 minutes</strong>.
                         </p>
@@ -84,7 +84,7 @@ public class EmailService {
                         <!-- CTA Button -->
                         <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
                           <tr>
-                            <td style="background:linear-gradient(135deg,#1d4ed8,#0ea5e9);border-radius:10px;text-align:center;">
+                            <td style="background:linear-gradient(135deg,#0d9488,#2dd4bf);border-radius:10px;text-align:center;">
                               <a href="%s"
                                  style="display:inline-block;padding:14px 36px;color:#fff;font-size:0.95rem;
                                         font-weight:700;text-decoration:none;letter-spacing:0.02em;">
@@ -115,7 +115,7 @@ public class EmailService {
                     <tr>
                       <td style="background:#f8fafc;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
                         <p style="margin:0;font-size:0.78rem;color:#94a3b8;">
-                          © 2024 Horizon Airways · All rights reserved
+                          © 2026 Full Stack Aviation · All rights reserved
                         </p>
                       </td>
                     </tr>

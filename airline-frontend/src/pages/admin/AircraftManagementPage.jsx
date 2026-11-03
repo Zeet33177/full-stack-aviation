@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { adminAircraftAPI } from '../../api/axios';
+import { FaTimes } from 'react-icons/fa';
 
 const EMPTY = {
   registrationNumber: '', model: '', manufacturer: '',
@@ -129,7 +130,7 @@ export default function AircraftManagementPage() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editing ? 'Edit Aircraft' : 'Add Aircraft'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="modal-close" onClick={() => setModal(null)}><FaTimes /></button>
             </div>
             <form onSubmit={handleSave} className="modal-form">
               <div className="form-row">

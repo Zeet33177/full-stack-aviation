@@ -1,5 +1,5 @@
 -- ============================================================
--- Horizon Airways — Seed Data
+-- Full Stack Aviation — Seed Data
 -- Runs on startup via spring.sql.init.data-locations
 -- Uses INSERT IGNORE so re-runs are safe.
 -- ============================================================
@@ -14,7 +14,7 @@ VALUES
 
 -- Admin user  (password = "admin@123" BCrypt encoded)
 INSERT IGNORE INTO users (id, first_name, last_name, email, password, role, phone, nationality, created_at, updated_at)
-VALUES (1, 'Horizon', 'Admin', 'admin@horizon.com',
+VALUES (1, 'Full Stack', 'Admin', 'admin@horizon.com',
         '$2b$12$YRH3gUrkkYEfnDLMnD7u4e/cV3D2juot0js0g2CrwWuT3F6wPD6J6',
         'ADMIN', '+911234567890', 'Indian', NOW(), NOW());
 
@@ -42,7 +42,14 @@ VALUES
   (7,  'HA401', 4, 'Mumbai',    'London',    DATE_ADD(NOW(), INTERVAL 6  DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 6  DAY), INTERVAL 9  HOUR), 555, 555, 52999.00, 'SCHEDULED', 'T2', 'G20'),
   (8,  'HA402', 4, 'London',    'Mumbai',    DATE_ADD(NOW(), INTERVAL 9  DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 9  DAY), INTERVAL 9  HOUR), 555, 555, 52999.00, 'SCHEDULED', 'T5', 'G18'),
   (9,  'HA501', 1, 'Chennai',   'Kolkata',   DATE_ADD(NOW(), INTERVAL 2  DAY), DATE_ADD(DATE_ADD(DATE_ADD(NOW(), INTERVAL 2  DAY), INTERVAL 2  HOUR), INTERVAL 30 MINUTE), 189, 189, 5499.00,  'SCHEDULED', 'T1', 'G6'),
-  (10, 'HA502', 2, 'Hyderabad', 'Delhi',     DATE_ADD(NOW(), INTERVAL 3  DAY), DATE_ADD(DATE_ADD(DATE_ADD(NOW(), INTERVAL 3  DAY), INTERVAL 2  HOUR), INTERVAL 15 MINUTE), 180, 180, 6299.00,  'SCHEDULED', 'T2', 'G9');
+  (10, 'HA502', 2, 'Hyderabad', 'Delhi',     DATE_ADD(NOW(), INTERVAL 3  DAY), DATE_ADD(DATE_ADD(DATE_ADD(NOW(), INTERVAL 3  DAY), INTERVAL 2  HOUR), INTERVAL 15 MINUTE), 180, 180, 6299.00,  'SCHEDULED', 'T2', 'G9'),
+  -- Fixed Dec 7 2026 flights for demo
+  (11, 'HA601', 1, 'Mumbai',    'Delhi',     '2026-12-07 06:00:00', '2026-12-07 08:05:00', 189, 189, 5499.00,  'SCHEDULED', 'T2', 'G4'),
+  (12, 'HA602', 2, 'Delhi',     'Mumbai',    '2026-12-07 09:30:00', '2026-12-07 11:35:00', 180, 180, 4799.00,  'SCHEDULED', 'T1', 'G7'),
+  (13, 'HA603', 2, 'Mumbai',    'Bengaluru', '2026-12-07 11:00:00', '2026-12-07 12:45:00', 180, 180, 3299.00,  'SCHEDULED', 'T2', 'G11'),
+  (14, 'HA604', 1, 'Delhi',     'Bengaluru', '2026-12-07 14:00:00', '2026-12-07 16:30:00', 189, 189, 5999.00,  'SCHEDULED', 'T3', 'G6'),
+  (15, 'HA605', 3, 'Chennai',   'Mumbai',    '2026-12-07 07:15:00', '2026-12-07 09:30:00', 396, 396, 4299.00,  'SCHEDULED', 'T1', 'G2'),
+  (16, 'HA606', 2, 'Hyderabad', 'Delhi',     '2026-12-07 16:45:00', '2026-12-07 19:15:00', 180, 180, 6499.00,  'SCHEDULED', 'T2', 'G10');
 
 -- Sample Employees
 INSERT IGNORE INTO employees (id, employee_id, first_name, last_name, job_role, department, email, phone, hire_date, salary, status, created_at)

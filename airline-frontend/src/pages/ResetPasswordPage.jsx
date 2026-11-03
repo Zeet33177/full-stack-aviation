@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authAPI } from '../api/axios';
+import { FaPlane, FaUserLock, FaShieldAlt, FaStopwatch, FaLock, FaExclamationTriangle, FaEye, FaEyeSlash, FaCheck, FaTimes, FaArrowLeft, FaCheckCircle } from 'react-icons/fa';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -49,11 +50,11 @@ export default function ResetPasswordPage() {
 
       {/* ── Left panel ── */}
       <div className="auth-left-panel">
-        <div className="auth-left-deco">✈</div>
+        <div className="auth-left-deco"><FaPlane /></div>
         <div className="auth-left-inner">
           <div className="auth-left-brand">
-            <span className="auth-left-brand-icon">✈</span>
-            <span className="auth-left-brand-name">Horizon Airways</span>
+            <span className="auth-left-brand-icon"><FaPlane /></span>
+            <span className="auth-left-brand-name">Full Stack Aviation</span>
           </div>
           <p className="auth-left-tagline">Account Security</p>
           <h2 className="auth-left-headline">
@@ -61,19 +62,19 @@ export default function ResetPasswordPage() {
             <span>account safe.</span>
           </h2>
           <p className="auth-left-sub">
-            Choose a strong password you haven't used before to protect your Horizon Airways account.
+            Choose a strong password you haven't used before to protect your Full Stack Aviation account.
           </p>
           <div className="auth-left-features">
             <div className="auth-feature-item">
-              <span className="auth-feature-icon">🔐</span>
+              <span className="auth-feature-icon"><FaUserLock /></span>
               <span className="auth-feature-text">Minimum 6 characters</span>
             </div>
             <div className="auth-feature-item">
-              <span className="auth-feature-icon">🛡️</span>
+              <span className="auth-feature-icon"><FaShieldAlt /></span>
               <span className="auth-feature-text">Stored with BCrypt encryption</span>
             </div>
             <div className="auth-feature-item">
-              <span className="auth-feature-icon">⏱️</span>
+              <span className="auth-feature-icon"><FaStopwatch /></span>
               <span className="auth-feature-text">Reset link valid for 30 minutes</span>
             </div>
           </div>
@@ -89,10 +90,10 @@ export default function ResetPasswordPage() {
               <div className="auth-card-header">
                 <div style={{
                   width: '56px', height: '56px', borderRadius: '16px', marginBottom: '16px',
-                  background: 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+                  background: 'linear-gradient(135deg, var(--primary-light), #99f6e4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem',
                 }}>
-                  🔒
+                  <FaLock />
                 </div>
                 <h1>Set New Password</h1>
                 <p>Enter and confirm your new password below.</p>
@@ -104,7 +105,7 @@ export default function ResetPasswordPage() {
                   borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: '20px',
                   fontSize: '0.85rem', color: '#dc2626', lineHeight: 1.5,
                 }}>
-                  ⚠️ Invalid or missing reset token. Please use the link from your email, or{' '}
+                  <FaExclamationTriangle style={{ verticalAlign: 'middle' }} /> Invalid or missing reset token. Please use the link from your email, or{' '}
                   <Link to="/login" style={{ color: '#dc2626', fontWeight: '700' }}>request a new one</Link>.
                 </div>
               )}
@@ -126,7 +127,7 @@ export default function ResetPasswordPage() {
                     />
                     <button type="button" onClick={() => setShowNew(s => !s)} tabIndex={-1}
                       style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-muted)', padding: '2px' }}>
-                      {showNew ? '🙈' : '👁️'}
+                      {showNew ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
                   {errors.newPassword && <span className="error-msg">{errors.newPassword}</span>}
@@ -147,7 +148,7 @@ export default function ResetPasswordPage() {
                     />
                     <button type="button" onClick={() => setShowConf(s => !s)} tabIndex={-1}
                       style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-muted)', padding: '2px' }}>
-                      {showConf ? '🙈' : '👁️'}
+                      {showConf ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
                   {errors.confirmPassword && <span className="error-msg">{errors.confirmPassword}</span>}
@@ -156,7 +157,9 @@ export default function ResetPasswordPage() {
                   {form.confirmPassword && (
                     <div style={{ marginTop: '6px', fontSize: '0.78rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px',
                       color: form.newPassword === form.confirmPassword ? '#059669' : '#dc2626' }}>
-                      {form.newPassword === form.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                      {form.newPassword === form.confirmPassword
+                        ? <><FaCheck /> Passwords match</>
+                        : <><FaTimes /> Passwords do not match</>}
                     </div>
                   )}
                 </div>
@@ -168,7 +171,7 @@ export default function ResetPasswordPage() {
               </form>
 
               <p className="auth-footer" style={{ marginTop: '24px' }}>
-                <Link to="/login">← Back to Sign In</Link>
+                <Link to="/login"><FaArrowLeft style={{ verticalAlign: 'middle' }} /> Back to Sign In</Link>
               </p>
             </>
           ) : (
@@ -179,7 +182,7 @@ export default function ResetPasswordPage() {
                 background: 'linear-gradient(135deg,#d1fae5,#a7f3d0)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
               }}>
-                ✅
+                <FaCheckCircle />
               </div>
               <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text)', fontFamily: 'Sora, sans-serif', marginBottom: '10px' }}>
                 Password Reset!

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { FaPlane, FaUser, FaTicketAlt, FaSignOutAlt } from 'react-icons/fa';
 
 export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -35,20 +36,23 @@ export default function Navbar() {
     ? (user.firstName?.[0] || '') + (user.lastName?.[0] || '')
     : '';
 
+  // Landing + results pages + auth pages have their own header / full-page bg.
+  if (['/testLandingPage', '/flights', '/login', '/register'].includes(location.pathname)) return null;
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/search">
-          <span className="brand-icon">✈</span>
-          <span className="brand-name">Horizon Airways</span>
+        <Link to="/testLandingPage">
+          <span className="brand-icon"><FaPlane /></span>
+          <span className="brand-name">Full Stack Aviation</span>
         </Link>
       </div>
 
       <div className="navbar-links">
         <Link
-          to="/search"
+          to="/testLandingPage"
           className="nav-link"
-          style={isActive('/search') ? { color: '#fff', background: 'rgba(255,255,255,.12)' } : {}}
+          style={isActive('/testLandingPage') || isActive('/flights') ? { color: '#fff', background: 'rgba(255,255,255,.12)' } : {}}
         >
           Search Flights
         </Link>
@@ -158,7 +162,7 @@ export default function Navbar() {
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span>👤</span> My Profile
+                      <span><FaUser /></span> My Profile
                     </Link>
 
                     <Link
@@ -173,7 +177,7 @@ export default function Navbar() {
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span>🎫</span> My Bookings
+                      <span><FaTicketAlt /></span> My Bookings
                     </Link>
 
                     <div style={{ margin: '4px 0', borderTop: '1px solid var(--border)' }} />
@@ -190,7 +194,7 @@ export default function Navbar() {
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-light)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span>🚪</span> Sign Out
+                      <span><FaSignOutAlt /></span> Sign Out
                     </button>
                   </div>
                 </div>

@@ -14,4 +14,6 @@ public class BookingRequest {
 
     @NotBlank(message = "Seat class is required")
     private String seatClass;   // ECONOMY, BUSINESS, FIRST
+
+    private String seatNumber;  // optional; chosen from the seat map
 }

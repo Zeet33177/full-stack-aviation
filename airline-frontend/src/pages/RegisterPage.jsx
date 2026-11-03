@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { FaPlane, FaTicketAlt, FaMobileAlt, FaChair, FaUserTie } from 'react-icons/fa';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function RegisterPage() {
       const { data } = await authAPI.register(payload);
       login(data.data);
       toast.success('Registration successful! Welcome aboard.');
-      navigate('/search');
+      navigate('/testLandingPage');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -57,52 +58,43 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-split">
+    <div className="sky-auth-page">
+      <div className="sky-auth-overlay" />
 
-      {/* ── Left panel ── */}
-      <div className="auth-left-panel">
-        <div className="auth-left-deco">✈</div>
-        <div className="auth-left-inner">
-
-          <div className="auth-left-brand">
-            <span className="auth-left-brand-icon">✈</span>
-            <span className="auth-left-brand-name">Horizon Airways</span>
+      {/* Left brand panel */}
+      <div className="sky-auth-left">
+        <div className="sky-auth-brand">
+          <FaPlane />
+          <span>Full Stack Aviation</span>
+        </div>
+        <h2 className="sky-auth-headline">
+          Fly smarter,<br />
+          <span>travel better.</span>
+        </h2>
+        <p className="sky-auth-sub">
+          Create your free account and unlock exclusive fares, seamless booking,
+          and a personalised travel experience.
+        </p>
+        <div className="sky-auth-features">
+          <div className="sky-auth-feat">
+            <FaTicketAlt /> <span>Digital Boarding Passes</span>
           </div>
-
-          <p className="auth-left-tagline">Join Our Community</p>
-          <h2 className="auth-left-headline">
-            Fly smarter,<br />
-            <span>travel better.</span>
-          </h2>
-          <p className="auth-left-sub">
-            Create your free account and unlock exclusive fares, seamless booking,
-            and a personalised travel experience.
-          </p>
-
-          <div className="auth-left-features">
-            <div className="auth-feature-item">
-              <span className="auth-feature-icon">🎫</span>
-              <span className="auth-feature-text">Digital Boarding Passes</span>
-            </div>
-            <div className="auth-feature-item">
-              <span className="auth-feature-icon">📱</span>
-              <span className="auth-feature-text">Manage Bookings Anytime</span>
-            </div>
-            <div className="auth-feature-item">
-              <span className="auth-feature-icon">💺</span>
-              <span className="auth-feature-text">Choose Your Seat & Class</span>
-            </div>
+          <div className="sky-auth-feat">
+            <FaMobileAlt /> <span>Manage Bookings Anytime</span>
+          </div>
+          <div className="sky-auth-feat">
+            <FaChair /> <span>Choose Your Seat &amp; Class</span>
           </div>
         </div>
       </div>
 
-      {/* ── Right panel ── */}
-      <div className="auth-right-panel" style={{ padding: '32px 48px', alignItems: 'flex-start' }}>
-        <div className="auth-right-inner" style={{ maxWidth: '520px' }}>
+      {/* Right glass card */}
+      <div className="sky-auth-right" style={{ alignItems: 'flex-start', paddingTop: '24px' }}>
+        <div className="sky-auth-card" style={{ maxWidth: '520px' }}>
 
           <div className="auth-card-header">
             <h1>Create account</h1>
-            <p>Join Horizon Airways — it's free</p>
+            <p>Join Full Stack Aviation — it's free</p>
           </div>
 
           {/* Role toggle */}
@@ -112,14 +104,14 @@ export default function RegisterPage() {
               className={`reg-role-btn ${userType === 'PASSENGER' ? 'active' : ''}`}
               onClick={() => setUserType('PASSENGER')}
             >
-              ✈ Passenger
+              <FaPlane style={{ verticalAlign: 'middle' }} /> Passenger
             </button>
             <button
               type="button"
               className={`reg-role-btn ${userType === 'STAFF' ? 'active' : ''}`}
               onClick={() => setUserType('STAFF')}
             >
-              👔 Staff / Employee
+              <FaUserTie style={{ verticalAlign: 'middle' }} /> Staff / Employee
             </button>
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ticketAPI, bookingAPI } from '../api/axios';
+import { FaPlane, FaPrint } from 'react-icons/fa';
 
 function formatDateTime(dt) {
   if (!dt) return '-';
@@ -43,8 +44,8 @@ export default function TicketPage() {
         {/* Ticket header */}
         <div className="ticket-header">
           <div className="ticket-airline">
-            <span className="ticket-logo">✈</span>
-            <span className="ticket-airline-name">Horizon Airways</span>
+            <span className="ticket-logo"><FaPlane /></span>
+            <span className="ticket-airline-name">Full Stack Aviation</span>
           </div>
           <div className="ticket-type">BOARDING PASS</div>
         </div>
@@ -65,7 +66,7 @@ export default function TicketPage() {
               <div className="ticket-flight-line">
                 <span className="ticket-flight-num">{ticket.flightNumber}</span>
                 <div className="dotted-line"></div>
-                <span>✈</span>
+                <span><FaPlane /></span>
               </div>
               <div className="ticket-city-block">
                 <span className="ticket-iata">{ticket.destination?.substring(0,3).toUpperCase()}</span>
@@ -160,7 +161,7 @@ export default function TicketPage() {
       </div>
 
       <div className="ticket-actions no-print">
-        <button className="btn-primary" onClick={handlePrint}>🖨 Print Ticket</button>
+        <button className="btn-primary" onClick={handlePrint}><FaPrint /> Print Ticket</button>
       </div>
     </div>
   );

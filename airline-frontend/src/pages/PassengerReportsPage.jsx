@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { bookingAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaPlaneArrival, FaPlane, FaTicketAlt, FaMoneyBillWave, FaSearch, FaCircle } from 'react-icons/fa';
 
 function formatDate(dt) {
   if (!dt) return '-';
@@ -17,14 +18,15 @@ function formatCurrency(n) {
 }
 
 const STATUS_META = {
-  CONFIRMED: { label: 'Confirmed',  color: '#2563eb', bg: '#dbeafe', icon: '✅' },
-  PENDING:   { label: 'Pending',    color: '#d97706', bg: '#fef3c7', icon: '⏳' },
-  CANCELLED: { label: 'Cancelled',  color: '#dc2626', bg: '#fee2e2', icon: '❌' },
-  COMPLETED: { label: 'Completed',  color: '#059669', bg: '#d1fae5', icon: '🛬' },
+  CONFIRMED: { label: 'Confirmed',  color: 'var(--primary)', bg: '#ccfbf1', icon: FaCheckCircle },
+  PENDING:   { label: 'Pending',    color: '#d97706', bg: '#fef3c7', icon: FaHourglassHalf },
+  CANCELLED: { label: 'Cancelled',  color: '#dc2626', bg: '#fee2e2', icon: FaTimesCircle },
+  COMPLETED: { label: 'Completed',  color: '#059669', bg: '#d1fae5', icon: FaPlaneArrival },
 };
 
 function StatusBadge({ status }) {
-  const m = STATUS_META[status] || { label: status, color: '#6b7280', bg: '#f3f4f6', icon: '•' };
+  const m = STATUS_META[status] || { label: status, color: '#6b7280', bg: '#f3f4f6', icon: FaCircle };
+  const Icon = m.icon;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: '5px',
@@ -32,12 +34,13 @@ function StatusBadge({ status }) {
       fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.04em',
       color: m.color, background: m.bg,
     }}>
-      {m.icon} {m.label}
+      <Icon /> {m.label}
     </span>
   );
 }
 
 function StatCard({ icon, label, value, color, sub }) {
+  const Icon = icon;
   return (
     <div style={{
       background: 'var(--surface)', border: '1.5px solid var(--border)',
@@ -51,7 +54,7 @@ function StatCard({ icon, label, value, color, sub }) {
           width: '40px', height: '40px', borderRadius: '10px',
           background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.2rem',
-        }}>{icon}</div>
+        }}><Icon /></div>
       </div>
       <div style={{ fontSize: '1.8rem', fontWeight: '900', color, fontFamily: 'Sora, sans-serif', lineHeight: 1 }}>
         {value}
@@ -97,7 +100,7 @@ export default function PassengerReportsPage() {
 
   if (loading) return (
     <div className="loading-screen">
-      <span style={{ fontSize: '1.5rem' }}>✈</span> Loading your flight history…
+      <span style={{ fontSize: '1.5rem' }}><FaPlane /></span> Loading your flight history…
     </div>
   );
 
@@ -106,7 +109,7 @@ export default function PassengerReportsPage() {
 
       {/* ── Header ── */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f2557 0%, #1d4ed8 60%, #0ea5e9 100%)',
+        background: 'linear-gradient(135deg, #134e4a 0%, #0d9488 60%, #2dd4bf 100%)',
         borderRadius: 'var(--radius)', padding: '28px 32px', marginBottom: '32px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: '16px',
@@ -116,7 +119,7 @@ export default function PassengerReportsPage() {
         <div style={{
           position: 'absolute', right: '-30px', bottom: '-30px',
           fontSize: '10rem', opacity: 0.06, pointerEvents: 'none',
-        }}>✈</div>
+        }}><FaPlane /></div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.75rem', fontWeight: '700', color: 'rgba(255,255,255,.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
@@ -130,7 +133,7 @@ export default function PassengerReportsPage() {
           </p>
         </div>
 
-        <Link to="/search" className="btn-accent" style={{
+        <Link to="/testLandingPage" className="btn-accent" style={{
           padding: '10px 22px', textDecoration: 'none', fontSize: '0.88rem',
           position: 'relative', zIndex: 1,
         }}>
@@ -144,11 +147,11 @@ export default function PassengerReportsPage() {
         gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
         gap: '16px', marginBottom: '32px',
       }}>
-        <StatCard icon="🎫" label="Total Bookings"  value={stats.total}     color="#2563eb" />
-        <StatCard icon="🛬" label="Completed"       value={stats.completed} color="#059669" sub="Flights attended" />
-        <StatCard icon="✅" label="Confirmed"        value={stats.confirmed} color="#0891b2" sub="Upcoming flights" />
-        <StatCard icon="❌" label="Cancelled"        value={stats.cancelled} color="#dc2626" sub="Cancelled bookings" />
-        <StatCard icon="💰" label="Total Spent"      value={formatCurrency(stats.spent)} color="#d97706" sub="Excl. cancellations" />
+        <StatCard icon={FaTicketAlt} label="Total Bookings"  value={stats.total}     color="var(--primary)" />
+        <StatCard icon={FaPlaneArrival} label="Completed"       value={stats.completed} color="#059669" sub="Flights attended" />
+        <StatCard icon={FaCheckCircle} label="Confirmed"        value={stats.confirmed} color="#0891b2" sub="Upcoming flights" />
+        <StatCard icon={FaTimesCircle} label="Cancelled"        value={stats.cancelled} color="#dc2626" sub="Cancelled bookings" />
+        <StatCard icon={FaMoneyBillWave} label="Total Spent"      value={formatCurrency(stats.spent)} color="#d97706" sub="Excl. cancellations" />
       </div>
 
       {/* ── Status Breakdown Bar ── */}
@@ -168,7 +171,7 @@ export default function PassengerReportsPage() {
               <div style={{ width: `${pct(stats.completed)}%`, background: '#059669', transition: 'width .5s ease' }} />
             )}
             {stats.confirmed > 0 && (
-              <div style={{ width: `${pct(stats.confirmed)}%`, background: '#2563eb', transition: 'width .5s ease' }} />
+              <div style={{ width: `${pct(stats.confirmed)}%`, background: 'var(--primary)', transition: 'width .5s ease' }} />
             )}
             {stats.pending > 0 && (
               <div style={{ width: `${pct(stats.pending)}%`, background: '#d97706', transition: 'width .5s ease' }} />
@@ -181,7 +184,7 @@ export default function PassengerReportsPage() {
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             {[
               { label: 'Completed',  count: stats.completed, color: '#059669' },
-              { label: 'Confirmed',  count: stats.confirmed, color: '#2563eb' },
+              { label: 'Confirmed',  count: stats.confirmed, color: 'var(--primary)' },
               { label: 'Pending',    count: stats.pending,   color: '#d97706' },
               { label: 'Cancelled',  count: stats.cancelled, color: '#dc2626' },
             ].filter(i => i.count > 0).map(item => (
@@ -227,14 +230,14 @@ export default function PassengerReportsPage() {
       {/* ── Booking History ── */}
       {bookings.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">✈</span>
+          <span className="empty-icon"><FaPlane /></span>
           <h3>No travel history yet</h3>
           <p>Book your first flight and your journey will appear here.</p>
-          <Link to="/search" className="btn-primary">Search Flights</Link>
+          <Link to="/testLandingPage" className="btn-primary">Search Flights</Link>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">🔍</span>
+          <span className="empty-icon"><FaSearch /></span>
           <h3>No {STATUS_META[filter]?.label || filter} bookings</h3>
           <p>Try a different filter above.</p>
           <button className="btn-outline" onClick={() => setFilter('All')}>Show All</button>
@@ -278,7 +281,7 @@ export default function PassengerReportsPage() {
                     </span>
                     <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                      <span style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>✈</span>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--primary)' }}><FaPlane /></span>
                       <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                     </div>
                   </div>

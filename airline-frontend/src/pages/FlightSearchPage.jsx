@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { flightAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { FaExchangeAlt, FaSearch, FaPlane, FaPlaneDeparture, FaChair, FaBuilding, FaCity, FaUmbrellaBeach, FaLandmark, FaFlag, FaArrowRight } from 'react-icons/fa';
 
 function formatDuration(minutes) {
   const h = Math.floor(minutes / 60);
@@ -30,6 +31,7 @@ function formatDate(dt) {
 
 export default function FlightSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   const [form, setForm] = useState({ origin: '', destination: '', date: '' });
@@ -37,6 +39,17 @@ export default function FlightSearchPage() {
   const [loading, setLoading]   = useState(false);
   const [searched, setSearched] = useState(false);
   const [errors, setErrors]     = useState({});
+
+  // Auto-run a search when arriving from the landing page with query state.
+  useEffect(() => {
+    const s = location.state;
+    if (s?.origin && s?.destination && s?.date) {
+      setForm({ origin: s.origin, destination: s.destination, date: s.date });
+      doSearch(s.origin, s.destination, s.date);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -136,7 +149,7 @@ export default function FlightSearchPage() {
             </div>
 
             <button type="button" className="swap-btn" onClick={swapCities} title="Swap cities">
-              ⇄
+              <FaExchangeAlt />
             </button>
 
             <div className="form-group">
@@ -167,7 +180,7 @@ export default function FlightSearchPage() {
 
             <button type="submit" className="btn-accent btn-search" disabled={loading}
               style={{ alignSelf: 'flex-end', padding: '12px 28px' }}>
-              {loading ? 'Searching…' : '🔍 Search'}
+              {loading ? 'Searching…' : <><FaSearch /> Search</>}
             </button>
           </div>
         </form>
@@ -176,7 +189,7 @@ export default function FlightSearchPage() {
       {/* ── Results ── */}
       {loading && (
         <div className="loading-screen">
-          <span style={{ fontSize: '1.5rem' }}>✈</span>
+          <span style={{ fontSize: '1.5rem' }}><FaPlane /></span>
           Searching flights…
         </div>
       )}
@@ -211,7 +224,7 @@ export default function FlightSearchPage() {
 
                     <div className="flight-arrow">
                       <span className="flight-duration">{formatDuration(flight.durationMinutes)}</span>
-                      <div className="arrow-line"><span>✈</span></div>
+                      <div className="arrow-line"><span><FaPlane /></span></div>
                       <span className="flight-number">{flight.flightNumber}</span>
                     </div>
 
@@ -224,15 +237,15 @@ export default function FlightSearchPage() {
 
                   <div className="flight-meta">
                     <span>
-                      <span style={{ marginRight: '4px' }}>🛩</span>
+                      <span style={{ marginRight: '4px' }}><FaPlaneDeparture /></span>
                       {flight.aircraftModel || 'Aircraft'}
                     </span>
                     <span>
-                      <span style={{ marginRight: '4px' }}>💺</span>
+                      <span style={{ marginRight: '4px' }}><FaChair /></span>
                       {flight.availableSeats} seats left
                     </span>
                     <span>
-                      <span style={{ marginRight: '4px' }}>🏢</span>
+                      <span style={{ marginRight: '4px' }}><FaBuilding /></span>
                       Terminal {flight.terminal} · Gate {flight.gate}
                     </span>
                   </div>
@@ -268,7 +281,7 @@ export default function FlightSearchPage() {
 
           {flights.length === 0 && (
             <div className="empty-state">
-              <span className="empty-icon">✈</span>
+              <span className="empty-icon"><FaPlane /></span>
               <h3>No flights found</h3>
               <p>Try a different date or route to find available flights.</p>
               <button className="btn-outline" onClick={() => { setSearched(false); setFlights([]); }}>
@@ -287,10 +300,10 @@ export default function FlightSearchPage() {
           gap: '16px'
         }}>
           {[
-            { icon: '🏙️', from: 'Mumbai', to: 'Delhi', price: '4,999', tag: 'Popular' },
-            { icon: '🌴', from: 'Mumbai', to: 'Bengaluru', price: '3,499', tag: 'Best Value' },
-            { icon: '🗽', from: 'Delhi', to: 'New York', price: '45,999', tag: 'International' },
-            { icon: '🇬🇧', from: 'Mumbai', to: 'London', price: '52,999', tag: 'International' },
+            { Icon: FaCity, from: 'Mumbai', to: 'Delhi', price: '4,999', tag: 'Popular' },
+            { Icon: FaUmbrellaBeach, from: 'Mumbai', to: 'Bengaluru', price: '3,499', tag: 'Best Value' },
+            { Icon: FaLandmark, from: 'Delhi', to: 'New York', price: '45,999', tag: 'International' },
+            { Icon: FaFlag, from: 'Mumbai', to: 'London', price: '52,999', tag: 'International' },
           ].map((route, i) => (
             <div
               key={i}
@@ -304,12 +317,12 @@ export default function FlightSearchPage() {
               onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'none'; }}
             >
-              <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{route.icon}</div>
+              <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{(() => { const Icon = route.Icon; return <Icon />; })()}</div>
               <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '999px', display: 'inline-block', marginBottom: '8px' }}>
                 {route.tag}
               </div>
               <div style={{ fontWeight: '800', fontSize: '1rem', color: 'var(--text)', fontFamily: 'Sora, sans-serif' }}>
-                {route.from} → {route.to}
+                {route.from} <FaArrowRight style={{ verticalAlign: 'middle' }} /> {route.to}
               </div>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '6px' }}>
                 From <strong style={{ color: 'var(--primary)', fontFamily: 'Sora, sans-serif', fontSize: '1.1rem' }}>₹{route.price}</strong>

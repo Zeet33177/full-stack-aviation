@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { attendanceAPI, adminEmployeeAPI } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { FaTimes } from 'react-icons/fa';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -207,7 +208,7 @@ export default function AttendancePage() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Mark Attendance</h2>
-              <button className="modal-close" onClick={() => setShowMarkModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowMarkModal(false)}><FaTimes /></button>
             </div>
             <form onSubmit={handleAdminMark} className="modal-form">
               <div className="form-group">

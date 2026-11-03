@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "bookings", uniqueConstraints = @UniqueConstraint(
+        name = "uk_flight_seat", columnNames = {"flight_id", "seat_number"}))
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Booking {
 

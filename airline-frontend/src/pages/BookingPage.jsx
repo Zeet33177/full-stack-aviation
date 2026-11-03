@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { flightAPI, bookingAPI, paymentAPI } from '../api/axios';
+import { FaCheck, FaPlane, FaChair, FaCouch, FaCrown, FaArrowRight, FaLock } from 'react-icons/fa';
 
 function formatDateTime(dt) {
   if (!dt) return '-';
@@ -11,7 +12,16 @@ function formatDateTime(dt) {
   });
 }
 
-const STEPS = ['Select Seat', 'Review', 'Payment'];
+const inr = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
+
+const STEPS = ['Class', 'Seat', 'Review', 'Payment'];
+const CLASS_MULTIPLIER = { ECONOMY: 1, BUSINESS: 2, FIRST: 3 };
+
+const SEAT_TYPE_LABEL = {
+  FREE:    'Standard',
+  REGULAR: 'Extra comfort',
+  PREMIUM: 'Premium legroom',
+};
 
 export default function BookingPage() {
   const { flightId } = useParams();
@@ -24,6 +34,10 @@ export default function BookingPage() {
 
   const [seatClass, setSeatClass] = useState('ECONOMY');
 
+  const [seatMap, setSeatMap] = useState(null);
+  const [seatsLoading, setSeatsLoading] = useState(false);
+  const [selectedSeat, setSelectedSeat] = useState(null);
+
   const [payment, setPayment] = useState({
     cardNumber: '', cardHolderName: '', expiryDate: '', cvv: '', paymentMethod: 'CREDIT_CARD'
   });
@@ -32,18 +46,38 @@ export default function BookingPage() {
   useEffect(() => {
     flightAPI.getById(flightId)
       .then(({ data }) => setFlight(data.data))
-      .catch(() => { toast.error('Flight not found'); navigate('/search'); });
+      .catch(() => { toast.error('Flight not found'); navigate('/testLandingPage'); });
   }, [flightId, navigate]);
 
+  const loadSeatMap = useCallback(() => {
+    setSeatsLoading(true);
+    flightAPI.seatMap(flightId)
+      .then(({ data }) => setSeatMap(data.data))
+      .catch(() => toast.error('Could not load the seat map'))
+      .finally(() => setSeatsLoading(false));
+  }, [flightId]);
+
+  function goToSeats() {
+    setStep(1);
+    if (!seatMap) loadSeatMap();
+  }
+
   async function handleCreateBooking() {
+    if (!selectedSeat) { toast.error('Pick a seat to continue'); return; }
     setLoading(true);
     try {
-      const { data } = await bookingAPI.create({ flightId: Number(flightId), seatClass });
+      const { data } = await bookingAPI.create({
+        flightId: Number(flightId),
+        seatClass,
+        seatNumber: selectedSeat.number,
+      });
       setBooking(data.data);
-      setStep(1);
-      toast.success('Seat reserved! Proceed to payment.');
+      setStep(2);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Booking failed');
+      // A seat may have just been taken — refresh the map.
+      loadSeatMap();
+      setSelectedSeat(null);
     } finally {
       setLoading(false);
     }
@@ -58,15 +92,25 @@ export default function BookingPage() {
     return errs;
   }
 
+  function fillDemoPayment() {
+    setPayment({
+      cardNumber: '4111111111111111',
+      cardHolderName: 'JOHN DOE',
+      expiryDate: '12/27',
+      cvv: '123',
+      paymentMethod: 'CREDIT_CARD',
+    });
+    setPayErrors({});
+  }
+
   async function handlePayment() {
     const errs = validatePayment();
     if (Object.keys(errs).length) { setPayErrors(errs); return; }
     setLoading(true);
     try {
       await paymentAPI.process(booking.id, payment);
-      // Generate ticket automatically
       await ticketAfterPayment(booking.id);
-      toast.success('Payment successful! Your ticket is ready.');
+      toast.success('Payment successful. Your ticket is ready.');
       navigate(`/ticket/${booking.id}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Payment failed');
@@ -82,8 +126,9 @@ export default function BookingPage() {
     } catch { /* ticket can be generated later from bookings page */ }
   }
 
-  const CLASS_MULTIPLIER = { ECONOMY: 1, BUSINESS: 2, FIRST: 3 };
-  const classPrice = flight ? Number(flight.price) * CLASS_MULTIPLIER[seatClass] : 0;
+  const classFare = flight ? Number(flight.price) * CLASS_MULTIPLIER[seatClass] : 0;
+  const seatAddOn = selectedSeat ? Number(selectedSeat.addOn) : 0;
+  const liveTotal = classFare + seatAddOn;
 
   if (!flight) return <div className="loading-screen">Loading flight details…</div>;
 
@@ -94,7 +139,7 @@ export default function BookingPage() {
         <div className="step-indicator">
           {STEPS.map((s, i) => (
             <div key={s} className={`step ${i === step ? 'active' : i < step ? 'done' : ''}`}>
-              <div className="step-num">{i < step ? '✓' : i + 1}</div>
+              <div className="step-num">{i < step ? <FaCheck /> : i + 1}</div>
               <div className="step-label">{s}</div>
             </div>
           ))}
@@ -104,7 +149,7 @@ export default function BookingPage() {
         <div className="booking-flight-summary">
           <div className="summary-route">
             <span className="summary-city">{flight.origin}</span>
-            <span className="summary-arrow">✈</span>
+            <span className="summary-arrow"><FaPlane /></span>
             <span className="summary-city">{flight.destination}</span>
           </div>
           <div className="summary-details">
@@ -112,67 +157,148 @@ export default function BookingPage() {
             <span>·</span>
             <span>{flight.flightNumber}</span>
             <span>·</span>
-            <span className="summary-price">₹{Number(flight.price).toLocaleString('en-IN')}</span>
+            <span className="summary-price">{inr(flight.price)}</span>
           </div>
         </div>
 
         {/* Step 0: Select Seat Class */}
         {step === 0 && (
           <div className="booking-step">
-            <h2>Select Seat Class</h2>
+            <h2>Select seat class</h2>
             <div className="seat-class-grid">
               {[
-                { cls: 'ECONOMY',  icon: '💺', label: 'Economy',  mult: 1 },
-                { cls: 'BUSINESS', icon: '🛋',  label: 'Business', mult: 2 },
-                { cls: 'FIRST',    icon: '👑', label: 'First',    mult: 3 },
-              ].map(({ cls, icon, label, mult }) => (
+                { cls: 'ECONOMY',  Icon: FaChair, label: 'Economy',  mult: 1 },
+                { cls: 'BUSINESS', Icon: FaCouch,  label: 'Business', mult: 2 },
+                { cls: 'FIRST',    Icon: FaCrown, label: 'First',    mult: 3 },
+              ].map(({ cls, Icon, label, mult }) => (
                 <button
                   key={cls}
                   className={`seat-class-btn ${seatClass === cls ? 'selected' : ''}`}
                   onClick={() => setSeatClass(cls)}
                 >
-                  <span className="seat-icon">{icon}</span>
+                  <span className="seat-icon"><Icon /></span>
                   <span>{label}</span>
                   <span style={{ fontSize: '0.8rem', color: seatClass === cls ? 'inherit' : 'var(--text-muted)', marginTop: '4px' }}>
-                    ₹{(Number(flight.price) * mult).toLocaleString('en-IN')}
+                    {inr(Number(flight.price) * mult)}
                   </span>
                 </button>
               ))}
             </div>
             <div className="booking-total">
-              <span>Total: </span>
-              <strong>₹{classPrice.toLocaleString('en-IN')}</strong>
+              <span>Base fare: </span>
+              <strong>{inr(classFare)}</strong>
             </div>
-            <button className="btn-primary btn-full" onClick={handleCreateBooking} disabled={loading}>
-              {loading ? 'Reserving…' : 'Reserve Seat'}
+            <button className="btn-primary btn-full" onClick={goToSeats}>
+              Continue to seat selection
             </button>
           </div>
         )}
 
-        {/* Step 1: Review */}
-        {step === 1 && booking && (
+        {/* Step 1: Seat map */}
+        {step === 1 && (
           <div className="booking-step">
-            <h2>Review Your Booking</h2>
+            <h2>Pick your seat</h2>
+
+            <div className="seatmap-legend">
+              <span><i className="seat-dot seat-free" /> Standard · free</span>
+              <span><i className="seat-dot seat-regular" /> Extra comfort · +{inr(250)}</span>
+              <span><i className="seat-dot seat-premium" /> Premium legroom · +{inr(350)}</span>
+              <span><i className="seat-dot seat-selected" /> Selected</span>
+              <span><i className="seat-dot seat-occupied" /> Taken</span>
+            </div>
+
+            {seatsLoading && <div className="loading-screen" style={{ minHeight: '200px' }}>Loading cabin…</div>}
+
+            {!seatsLoading && seatMap && (
+              <>
+                <div className="cabin">
+                  <div className="cabin-nose"><FaPlane /></div>
+                  <div className="cabin-body">
+                    {seatMap.rows.map((row) => (
+                      <div className="cabin-row" key={row.row}>
+                        <span className="cabin-row-label">{row.row}</span>
+                        <div className="cabin-seats">
+                          {row.seats.map((seat, idx) => {
+                            const isSelected = selectedSeat?.number === seat.number;
+                            const cls = seat.occupied
+                              ? 'seat-occupied'
+                              : isSelected
+                                ? 'seat-selected'
+                                : `seat-${seat.type.toLowerCase()}`;
+                            return (
+                              <React.Fragment key={seat.number}>
+                                <button
+                                  type="button"
+                                  className={`seat ${cls}`}
+                                  disabled={seat.occupied}
+                                  title={seat.occupied
+                                    ? `${seat.number} · taken`
+                                    : `${seat.number} · ${SEAT_TYPE_LABEL[seat.type]}${Number(seat.addOn) > 0 ? ` · +${inr(seat.addOn)}` : ' · free'}`}
+                                  onClick={() => setSelectedSeat(seat)}
+                                >
+                                  {seat.number}
+                                </button>
+                                {idx + 1 === seatMap.aisleAfter && <span className="cabin-aisle" />}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="seat-summary-bar">
+                  {selectedSeat ? (
+                    <div className="seat-breakdown">
+                      <div className="review-row"><span>Seat</span><strong>{selectedSeat.number} · {SEAT_TYPE_LABEL[selectedSeat.type]}</strong></div>
+                      <div className="review-row"><span>{seatClass} fare</span><strong>{inr(classFare)}</strong></div>
+                      <div className="review-row"><span>Seat add-on</span><strong>{seatAddOn > 0 ? `+${inr(seatAddOn)}` : 'Free'}</strong></div>
+                      <div className="review-row highlight"><span>Total</span><strong>{inr(liveTotal)}</strong></div>
+                    </div>
+                  ) : (
+                    <p className="seat-hint">Select an available seat to see your total.</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="form-row" style={{ marginTop: '16px' }}>
+              <button className="btn-outline" onClick={() => setStep(0)}>Back</button>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={handleCreateBooking} disabled={loading || !selectedSeat}>
+                {loading ? 'Reserving…' : selectedSeat ? `Reserve ${selectedSeat.number} · ${inr(liveTotal)}` : 'Reserve seat'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Review */}
+        {step === 2 && booking && (
+          <div className="booking-step">
+            <h2>Review your booking</h2>
             <div className="review-card">
               <div className="review-row"><span>Booking Ref</span><strong>{booking.bookingReference}</strong></div>
               <div className="review-row"><span>Passenger</span><strong>{booking.passengerName}</strong></div>
               <div className="review-row"><span>Seat</span><strong>{booking.seatNumber} · {booking.seatClass}</strong></div>
               <div className="review-row"><span>Flight</span><strong>{booking.flightNumber}</strong></div>
-              <div className="review-row"><span>Route</span><strong>{booking.origin} → {booking.destination}</strong></div>
+              <div className="review-row"><span>Route</span><strong>{booking.origin} <FaArrowRight style={{ verticalAlign: 'middle' }} /> {booking.destination}</strong></div>
               <div className="review-row"><span>Departure</span><strong>{formatDateTime(booking.departureTime)}</strong></div>
-              <div className="review-row highlight"><span>Amount</span><strong>₹{Number(booking.totalAmount).toLocaleString('en-IN')}</strong></div>
+              <div className="review-row highlight"><span>Amount</span><strong>{inr(booking.totalAmount)}</strong></div>
             </div>
-            <button className="btn-primary btn-full" onClick={() => setStep(2)}>
-              Proceed to Payment
+            <button className="btn-primary btn-full" onClick={() => setStep(3)}>
+              Proceed to payment
             </button>
           </div>
         )}
 
-        {/* Step 2: Payment */}
-        {step === 2 && booking && (
+        {/* Step 3: Payment */}
+        {step === 3 && booking && (
           <div className="booking-step">
-            <h2>Secure Payment</h2>
+            <h2>Secure payment</h2>
             <div className="payment-form">
+              <button type="button" className="btn-outline btn-full" onClick={fillDemoPayment} style={{ marginBottom: '1rem' }}>
+                Fill Demo Card
+              </button>
               <div className="form-group">
                 <label>Card Number (16 digits) *</label>
                 <input
@@ -237,14 +363,14 @@ export default function BookingPage() {
 
               <div className="payment-total">
                 <span>Total Payable: </span>
-                <strong>₹{Number(booking.totalAmount).toLocaleString('en-IN')}</strong>
+                <strong>{inr(booking.totalAmount)}</strong>
               </div>
 
               <button className="btn-primary btn-full" onClick={handlePayment} disabled={loading}>
-                {loading ? 'Processing…' : `Pay ₹${Number(booking.totalAmount).toLocaleString('en-IN')}`}
+                {loading ? 'Processing…' : `Pay ${inr(booking.totalAmount)}`}
               </button>
 
-              <p className="secure-note">🔒 Your payment is 256-bit SSL encrypted</p>
+              <p className="secure-note"><FaLock /> Your payment is 256-bit SSL encrypted</p>
             </div>
           </div>
         )}

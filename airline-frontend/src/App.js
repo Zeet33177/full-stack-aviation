@@ -6,6 +6,8 @@ import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FlightSearchPage from './pages/FlightSearchPage';
+import TestLandingPage from './pages/TestLandingPage';
+import FlightResultsPage from './pages/FlightResultsPage';
 import BookingPage from './pages/BookingPage';
 import TicketPage from './pages/TicketPage';
 import ProfilePage from './pages/ProfilePage';
@@ -31,7 +33,9 @@ function App() {
           <Route path="/register"        element={<RegisterPage />} />
           <Route path="/reset-password"  element={<ResetPasswordPage />} />
           <Route path="/search"          element={<FlightSearchPage />} />
-          <Route path="/"         element={<Navigate to="/search" replace />} />
+          <Route path="/testLandingPage" element={<TestLandingPage />} />
+          <Route path="/flights"         element={<FlightResultsPage />} />
+          <Route path="/"         element={<Navigate to="/testLandingPage" replace />} />
 
           {/* Protected routes */}
           <Route element={<PrivateRoute />}>
@@ -54,7 +58,7 @@ function App() {
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/search" replace />} />
+          <Route path="*" element={<Navigate to="/testLandingPage" replace />} />
         </Routes>
       </main>
     </div>

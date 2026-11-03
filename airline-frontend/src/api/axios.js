@@ -41,6 +41,7 @@ export const flightAPI = {
     api.get('/flights/search', { params: { origin, destination, date } }),
   getById: (id) => api.get(`/flights/${id}`),
   getAll:  ()   => api.get('/flights'),
+  seatMap: (id) => api.get(`/flights/${id}/seatmap`),
 };
 
 // ── Bookings ─────────────────────────────────────────────────

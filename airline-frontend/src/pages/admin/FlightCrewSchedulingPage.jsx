@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { adminFlightAPI, adminAircraftAPI, crewAPI, adminEmployeeAPI } from '../../api/axios';
+import { FaTimes, FaArrowRight } from 'react-icons/fa';
 
 const CREW_ROLES = ['PILOT', 'CO_PILOT', 'SENIOR_CABIN_CREW', 'CABIN_CREW', 'GROUND_STAFF'];
 
@@ -129,7 +130,7 @@ export default function FlightCrewSchedulingPage() {
                   onClick={() => selectFlight(f)}
                 >
                   <div className="fli-number">{f.flightNumber}</div>
-                  <div className="fli-route">{f.origin} → {f.destination}</div>
+                  <div className="fli-route">{f.origin} <FaArrowRight style={{ verticalAlign: 'middle' }} /> {f.destination}</div>
                   <div className="fli-time">{f.departureTime?.replace('T', ' ').slice(0, 16)}</div>
                   <span className={`status-pill ${f.status === 'SCHEDULED' ? 'pill-green' : f.status === 'CANCELLED' ? 'pill-red' : 'pill-orange'}`}>
                     {f.status}
@@ -152,7 +153,7 @@ export default function FlightCrewSchedulingPage() {
           ) : (
             <>
               <h3 className="crew-panel-title">
-                Crew for {selected.flightNumber} — {selected.origin} → {selected.destination}
+                Crew for {selected.flightNumber} — {selected.origin} <FaArrowRight style={{ verticalAlign: 'middle' }} /> {selected.destination}
               </h3>
 
               <table className="admin-table">
@@ -212,7 +213,7 @@ export default function FlightCrewSchedulingPage() {
           <div className="modal-box modal-box-lg" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Add New Flight</h2>
-              <button className="modal-close" onClick={() => setShowFlightModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowFlightModal(false)}><FaTimes /></button>
             </div>
             <form onSubmit={handleSaveFlight} className="modal-form">
               <div className="form-row">

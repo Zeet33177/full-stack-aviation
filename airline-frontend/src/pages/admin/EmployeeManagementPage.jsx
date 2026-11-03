@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { adminEmployeeAPI } from '../../api/axios';
+import { FaTimes } from 'react-icons/fa';
 
 const EMPTY = {
   employeeId: '', firstName: '', lastName: '', jobRole: '',
@@ -139,7 +140,7 @@ export default function EmployeeManagementPage() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{modal === 'add' ? 'Add Employee' : 'Edit Employee'}</h2>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="modal-close" onClick={() => setModal(null)}><FaTimes /></button>
             </div>
             <form onSubmit={handleSave} className="modal-form">
               <div className="form-row">
