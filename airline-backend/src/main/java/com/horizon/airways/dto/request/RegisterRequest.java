@@ -24,7 +24,7 @@ public class RegisterRequest {
     @Size(min = 6, max = 100, message = "Password must be 6–100 characters")
     private String password;
 
-    @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Invalid phone number")
+    @Pattern(regexp = "^$|^[+]?[0-9]{7,15}$", message = "Invalid phone number")
     private String phone;
 
     @Past(message = "Date of birth must be in the past")

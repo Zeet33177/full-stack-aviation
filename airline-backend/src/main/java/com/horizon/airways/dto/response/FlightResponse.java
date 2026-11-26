@@ -25,4 +25,6 @@ public class FlightResponse {
     private String aircraftModel;
     private String aircraftRegistration;
     private long durationMinutes;
+    private int stops;
+    private String viaCity;
 }

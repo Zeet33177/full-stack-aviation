@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { bookingAPI } from '../api/axios';
+import { bookingAPI, trackAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaPlaneArrival, FaPlane, FaTicketAlt, FaMoneyBillWave, FaSearch, FaCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaPlaneArrival, FaPlane, FaTicketAlt, FaMoneyBillWave, FaSearch, FaCircle, FaBell, FaArrowDown } from 'react-icons/fa';
 
 function formatDate(dt) {
   if (!dt) return '-';
@@ -22,6 +22,7 @@ const STATUS_META = {
   PENDING:   { label: 'Pending',    color: '#d97706', bg: '#fef3c7', icon: FaHourglassHalf },
   CANCELLED: { label: 'Cancelled',  color: '#dc2626', bg: '#fee2e2', icon: FaTimesCircle },
   COMPLETED: { label: 'Completed',  color: '#059669', bg: '#d1fae5', icon: FaPlaneArrival },
+  TRACK:     { label: 'Track',      color: '#0d9488', bg: '#ccfbf1', icon: FaBell },
 };
 
 function StatusBadge({ status }) {
@@ -67,13 +68,18 @@ function StatCard({ icon, label, value, color, sub }) {
   );
 }
 
-const FILTERS = ['All', 'CONFIRMED', 'COMPLETED', 'PENDING', 'CANCELLED'];
+const FILTERS = ['All', 'CONFIRMED', 'COMPLETED', 'PENDING', 'CANCELLED', 'TRACK'];
 
 export default function PassengerReportsPage() {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [filter, setFilter]     = useState('All');
+  const [filter, setFilter]     = useState(location.state?.tab === 'TRACK' ? 'TRACK' : 'All');
+
+  const [tracks, setTracks]         = useState([]);
+  const [tracksLoaded, setTracksLoaded] = useState(false);
 
   useEffect(() => {
     bookingAPI.getAll()
@@ -81,6 +87,15 @@ export default function PassengerReportsPage() {
       .catch(() => toast.error('Failed to load flight history'))
       .finally(() => setLoading(false));
   }, []);
+
+  // Lazy-load tracked flights the first time the Track tab is opened; mark drops seen.
+  useEffect(() => {
+    if (filter !== 'TRACK' || tracksLoaded) return;
+    trackAPI.getAll()
+      .then(({ data }) => setTracks(data.data || []))
+      .catch(() => toast.error('Failed to load tracked flights'))
+      .finally(() => { setTracksLoaded(true); trackAPI.markSeen().catch(() => {}); });
+  }, [filter, tracksLoaded]);
 
   const stats = useMemo(() => {
     const total     = bookings.length;
@@ -97,6 +112,15 @@ export default function PassengerReportsPage() {
   const filtered = filter === 'All' ? bookings : bookings.filter(b => b.status === filter);
 
   const pct = (n) => stats.total === 0 ? 0 : Math.round((n / stats.total) * 100);
+
+  function handleUntrack(flightId) {
+    trackAPI.untrack(flightId)
+      .then(() => {
+        setTracks(prev => prev.filter(t => t.flight.id !== flightId));
+        toast.info('Stopped tracking this flight');
+      })
+      .catch(() => toast.error('Could not stop tracking'));
+  }
 
   if (loading) return (
     <div className="loading-screen">
@@ -203,7 +227,11 @@ export default function PassengerReportsPage() {
       {/* ── Filter Tabs ── */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {FILTERS.map(f => {
-          const count = f === 'All' ? stats.total : bookings.filter(b => b.status === f).length;
+          const count = f === 'All'
+            ? stats.total
+            : f === 'TRACK'
+              ? (tracksLoaded ? tracks.length : null)
+              : bookings.filter(b => b.status === f).length;
           const active = filter === f;
           const m = STATUS_META[f];
           return (
@@ -228,7 +256,136 @@ export default function PassengerReportsPage() {
       </div>
 
       {/* ── Booking History ── */}
-      {bookings.length === 0 ? (
+      {filter === 'TRACK' ? (
+        !tracksLoaded ? (
+          <div className="empty-state">
+            <span className="empty-icon"><FaBell /></span>
+            <h3>Loading tracked flights…</h3>
+          </div>
+        ) : tracks.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-icon"><FaBell /></span>
+            <h3>No tracked flights yet</h3>
+            <p>Tap the bell on any flight in search results to track its price. We'll alert you when it drops.</p>
+            <Link to="/testLandingPage" className="btn-primary">Search Flights</Link>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {tracks.map((t, idx) => {
+              const f = t.flight;
+              return (
+                <div
+                  key={t.alertId}
+                  style={{
+                    background: 'var(--surface)', border: '1.5px solid var(--border)',
+                    borderRadius: 'var(--radius)', overflow: 'hidden',
+                    boxShadow: 'var(--shadow-sm)', transition: 'var(--transition)',
+                    animation: `fadeUp .3s ease ${idx * 0.04}s both`,
+                  }}
+                >
+                  <div style={{ height: '3px', background: t.dropped ? '#059669' : 'var(--primary)' }} />
+                  <div style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+
+                    {/* Route block */}
+                    <div style={{ flex: '1 1 260px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--text)', fontFamily: 'Sora, sans-serif', lineHeight: 1 }}>
+                          {f.origin}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                          {formatTime(f.departureTime)}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {formatDate(f.departureTime)}
+                        </div>
+                      </div>
+
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '999px' }}>
+                          {f.flightNumber}
+                        </span>
+                        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                          <span style={{ fontSize: '0.9rem', color: 'var(--primary)' }}><FaPlane /></span>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        </div>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                          {f.stops === 0 ? 'Non-stop' : `1 stop · ${f.viaCity || ''}`}
+                        </span>
+                      </div>
+
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.35rem', fontWeight: '900', color: 'var(--text)', fontFamily: 'Sora, sans-serif', lineHeight: 1 }}>
+                          {f.destination}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                          {formatTime(f.arrivalTime)}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {formatDate(f.arrivalTime)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price block */}
+                    <div style={{ textAlign: 'right', minWidth: '140px' }}>
+                      {t.dropped ? (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                            <span style={{ fontSize: '0.95rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                              {formatCurrency(t.trackedPrice)}
+                            </span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: '900', color: '#059669', fontFamily: 'Sora, sans-serif' }}>
+                              {formatCurrency(t.currentPrice)}
+                            </span>
+                          </div>
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '6px',
+                            fontSize: '0.72rem', fontWeight: '800', color: '#059669',
+                            background: '#d1fae5', padding: '3px 10px', borderRadius: '999px',
+                          }}>
+                            <FaArrowDown /> {formatCurrency(t.dropAmount)} off
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--text)', fontFamily: 'Sora, sans-serif' }}>
+                            {formatCurrency(t.currentPrice)}
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                            Watching · no drop yet
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', flex: '0 0 auto' }}>
+                      <button
+                        className="btn-primary"
+                        style={{ padding: '9px 20px', fontSize: '0.85rem' }}
+                        disabled={f.availableSeats <= 0}
+                        onClick={() => navigate(`/book/${f.id}`)}
+                      >
+                        {f.availableSeats <= 0 ? 'Sold out' : 'Book Flight'}
+                      </button>
+                      <button
+                        onClick={() => handleUntrack(f.id)}
+                        style={{
+                          fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)',
+                          background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
+                        }}
+                      >
+                        Untrack
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : bookings.length === 0 ? (
         <div className="empty-state">
           <span className="empty-icon"><FaPlane /></span>
           <h3>No travel history yet</h3>

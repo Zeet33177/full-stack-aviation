@@ -51,7 +51,11 @@ export default function RegisterPage() {
       toast.success('Registration successful! Welcome aboard.');
       navigate('/testLandingPage');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
+      const resp = err.response?.data;
+      const detail = Array.isArray(resp?.data) && resp.data.length
+        ? resp.data.join(', ')
+        : (resp?.message || 'Registration failed. Please try again.');
+      toast.error(detail);
     } finally {
       setLoading(false);
     }

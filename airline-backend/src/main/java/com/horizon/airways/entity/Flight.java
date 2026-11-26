@@ -57,6 +57,13 @@ public class Flight {
     @Column(length = 10)
     private String gate;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    @Builder.Default
+    private int stops = 0;
+
+    @Column(length = 100)
+    private String viaCity;
+
     @Builder.Default
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Booking> bookings = new ArrayList<>();

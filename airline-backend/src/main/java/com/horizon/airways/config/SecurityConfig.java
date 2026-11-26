@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Configuration
@@ -40,11 +41,15 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/flights/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/flights/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/flights/{id}/seatmap").permitAll()
                 .requestMatchers(HttpMethod.GET, "/flights").permitAll()
                 // Admin-only
                 .requestMatchers("/admin/**").hasRole("ADMIN")

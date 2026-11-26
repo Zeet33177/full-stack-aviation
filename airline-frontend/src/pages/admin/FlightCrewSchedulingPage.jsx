@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { adminFlightAPI, adminAircraftAPI, crewAPI, adminEmployeeAPI } from '../../api/axios';
-import { FaTimes, FaArrowRight } from 'react-icons/fa';
+import { FaTimes, FaArrowRight, FaEdit, FaCheck } from 'react-icons/fa';
 
 const CREW_ROLES = ['PILOT', 'CO_PILOT', 'SENIOR_CABIN_CREW', 'CABIN_CREW', 'GROUND_STAFF'];
 
@@ -23,6 +23,31 @@ export default function FlightCrewSchedulingPage() {
     terminal: 'T1', gate: 'G1'
   });
   const [savingFlight, setSavingFlight] = useState(false);
+  const [priceEditId, setPriceEditId]   = useState(null);
+  const [priceDraft, setPriceDraft]     = useState('');
+  const [savingPrice, setSavingPrice]   = useState(false);
+
+  function startPriceEdit(e, flight) {
+    e.stopPropagation();
+    setPriceEditId(flight.id);
+    setPriceDraft(String(flight.price));
+  }
+
+  async function savePrice(e, flight) {
+    e.stopPropagation();
+    const value = parseFloat(priceDraft);
+    if (isNaN(value) || value <= 0) { toast.warn('Enter a valid price'); return; }
+    setSavingPrice(true);
+    try {
+      await adminFlightAPI.updatePrice(flight.id, value);
+      toast.success(`Price updated for ${flight.flightNumber}`);
+      const { data } = await adminFlightAPI.getAll();
+      setFlights(data.data || []);
+      setPriceEditId(null);
+    } catch {
+      toast.error('Price update failed');
+    } finally { setSavingPrice(false); }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -132,6 +157,40 @@ export default function FlightCrewSchedulingPage() {
                   <div className="fli-number">{f.flightNumber}</div>
                   <div className="fli-route">{f.origin} <FaArrowRight style={{ verticalAlign: 'middle' }} /> {f.destination}</div>
                   <div className="fli-time">{f.departureTime?.replace('T', ' ').slice(0, 16)}</div>
+
+                  {/* Price + inline edit */}
+                  <div className="fli-price" onClick={e => e.stopPropagation()}>
+                    {priceEditId === f.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <input
+                          type="number" min="0" step="0.01" autoFocus
+                          value={priceDraft}
+                          onChange={e => setPriceDraft(e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          style={{ width: '90px', padding: '4px 8px', borderRadius: '6px', border: '1.5px solid var(--primary)', fontSize: '0.85rem' }}
+                        />
+                        <button className="btn-sm btn-primary" disabled={savingPrice}
+                          onClick={e => savePrice(e, f)} title="Save price">
+                          <FaCheck />
+                        </button>
+                        <button className="btn-sm btn-outline"
+                          onClick={e => { e.stopPropagation(); setPriceEditId(null); }} title="Cancel">
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '800', color: 'var(--text)' }}>
+                          ₹{Number(f.price).toLocaleString('en-IN')}
+                        </span>
+                        <button className="btn-sm btn-outline"
+                          onClick={e => startPriceEdit(e, f)} title="Edit price">
+                          <FaEdit />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <span className={`status-pill ${f.status === 'SCHEDULED' ? 'pill-green' : f.status === 'CANCELLED' ? 'pill-red' : 'pill-orange'}`}>
                     {f.status}
                   </span>

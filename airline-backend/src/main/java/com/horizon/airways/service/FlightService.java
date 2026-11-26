@@ -63,6 +63,8 @@ public class FlightService {
                 .aircraftModel(flight.getAircraft() != null ? flight.getAircraft().getModel() : null)
                 .aircraftRegistration(flight.getAircraft() != null ? flight.getAircraft().getRegistrationNumber() : null)
                 .durationMinutes(durationMinutes)
+                .stops(flight.getStops())
+                .viaCity(flight.getViaCity())
                 .build();
     }
 }

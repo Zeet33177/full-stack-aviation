@@ -18,10 +18,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('ha_token');
-      localStorage.removeItem('ha_user');
-      window.location.href = '/login';
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // 401 = invalid/missing token, 403 = expired token treated as anonymous by Spring Security
+      const isAuthEndpoint = error.config?.url?.includes('/auth/');
+      const isPublicGet = error.config?.method === 'get' &&
+        (error.config?.url?.includes('/flights/search') ||
+         error.config?.url?.includes('/flights/'));
+      if (!isAuthEndpoint && !isPublicGet) {
+        localStorage.removeItem('ha_token');
+        localStorage.removeItem('ha_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -101,6 +108,16 @@ export const adminFlightAPI = {
   create:  (data) => api.post('/admin/flights', data),
   cancel:  (id)   => api.put(`/admin/flights/${id}/cancel`),
   remove:  (id)   => api.delete(`/admin/flights/${id}`),
+  updatePrice: (id, price) => api.put(`/admin/flights/${id}/price`, { price }),
+};
+
+// ── Price Tracking ───────────────────────────────────
+export const trackAPI = {
+  track:         (flightId) => api.post(`/tracks/${flightId}`),
+  untrack:       (flightId) => api.delete(`/tracks/${flightId}`),
+  getAll:        ()         => api.get('/tracks'),
+  notifications: ()         => api.get('/tracks/notifications'),
+  markSeen:      ()         => api.put('/tracks/seen'),
 };
 
 // ── Crew Scheduling ──────────────────────────────────

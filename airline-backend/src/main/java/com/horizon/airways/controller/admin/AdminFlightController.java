@@ -30,6 +30,7 @@ public class AdminFlightController {
     private final FlightRepository flightRepository;
     private final AircraftRepository aircraftRepository;
     private final FlightService flightService;
+    private final com.horizon.airways.service.PriceAlertService priceAlertService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<FlightResponse>>> getAllFlights() {
@@ -61,6 +62,18 @@ public class AdminFlightController {
         flight = flightRepository.save(flight);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(flightService.toResponse(flight), "Flight created"));
+    }
+
+    @PutMapping("/{id}/price")
+    public ResponseEntity<ApiResponse<FlightResponse>> updatePrice(
+            @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Flight", "id", id));
+        BigDecimal newPrice = new BigDecimal(body.get("price").toString());
+        flight.setPrice(newPrice);
+        flight = flightRepository.save(flight);
+        priceAlertService.onFlightPriceChanged(id, newPrice);
+        return ResponseEntity.ok(ApiResponse.success(flightService.toResponse(flight), "Flight price updated"));
     }
 
     @PutMapping("/{id}/cancel")

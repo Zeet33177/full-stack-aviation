@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   FaPlane, FaPlaneDeparture, FaPlaneArrival, FaRegCalendarAlt,
-  FaSearch, FaStar, FaUserCircle, FaChevronDown, FaTicketAlt, FaSignOutAlt,
+  FaSearch, FaStar, FaUserCircle, FaChevronDown, FaTicketAlt, FaSignOutAlt, FaBell, FaTimes,
 } from 'react-icons/fa';
 import AirportAutocomplete from '../components/AirportAutocomplete';
 import { useAuth } from '../context/AuthContext';
+import { trackAPI } from '../api/axios';
 
 const AVATARS = [
   { id: 1, name: 'Marco Bianchi',  bg: '#1e3a8a' },
@@ -30,6 +31,15 @@ export default function TestLandingPage() {
   const [tripType, setTripType] = useState('One way');
   const [errors, setErrors] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropCount, setDropCount] = useState(0);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setDropCount(0); return; }
+    trackAPI.notifications()
+      .then(({ data }) => setDropCount(data.data?.count || 0))
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   const initials = user
     ? ((user.firstName?.[0] || '') + (user.lastName?.[0] || '')).toUpperCase()
@@ -79,6 +89,15 @@ export default function TestLandingPage() {
           <div className="tlp-nav-right">
             {isAuthenticated ? (
               <>
+                <button
+                  className="tlp-notif-btn"
+                  onClick={() => navigate('/my-reports', { state: { tab: 'TRACK' } })}
+                  aria-label="Price drop notifications"
+                  title={dropCount > 0 ? `${dropCount} price drop${dropCount === 1 ? '' : 's'}` : 'No new price drops'}
+                >
+                  <FaBell />
+                  {dropCount > 0 && <span className="tlp-notif-badge">{dropCount}</span>}
+                </button>
                 <button className="tlp-book-btn" onClick={() => navigate('/my-bookings')}>
                   <FaTicketAlt style={{ marginRight: '6px' }} /> My Bookings
                 </button>
@@ -136,6 +155,26 @@ export default function TestLandingPage() {
             )}
           </div>
         </header>
+
+        {/* Price drop notification banner */}
+        {isAuthenticated && dropCount > 0 && !bannerDismissed && (
+          <div
+            className="tlp-drop-banner"
+            onClick={() => navigate('/my-reports', { state: { tab: 'TRACK' } })}
+          >
+            <span className="tlp-drop-banner-icon"><FaBell /></span>
+            <span className="tlp-drop-banner-text">
+              Prices dropped for {dropCount} tracked flight{dropCount === 1 ? '' : 's'} — tap to view
+            </span>
+            <button
+              className="tlp-drop-banner-close"
+              aria-label="Dismiss"
+              onClick={(e) => { e.stopPropagation(); setBannerDismissed(true); }}
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
 
         {/* Plane */}
         <img className="tlp-plane" src="/img/airplane.png" alt="Airliner gliding through the sky" />
